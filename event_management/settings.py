@@ -155,6 +155,6 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-LOGIN_REDIRECT_URL = '/user'
+LOGIN_REDIRECT_URL = '/user/login'
 
-LOGOUT_REDIRECT_URL = '/user'
+LOGOUT_REDIRECT_URL = '/user/logout'
