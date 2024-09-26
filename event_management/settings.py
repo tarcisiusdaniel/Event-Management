@@ -156,10 +156,3 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 LOGIN_REDIRECT_URL = '/user'
-
-# google oauth 2.0 client ids info
-# client id
-# 103617421555-1asvvbt6amsck43sb5lpshkpd141dfdq.apps.googleusercontent.com
-
-# client secret
-# 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
