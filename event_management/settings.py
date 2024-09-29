@@ -36,6 +36,9 @@ ALLOWED_HOSTS = ['localhost']
 # Application definition
 
 INSTALLED_APPS = [
+    'user',
+    'event',
+    'registration',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'social_django',
+    'django.contrib.postgres',
 ]
 
 MIDDLEWARE = [
@@ -89,8 +93,11 @@ WSGI_APPLICATION = 'event_management.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': 'localhost',
     }
 }
 
@@ -153,6 +160,10 @@ SOCIALACCOUNT_PROVIDERS = {
         'AUTH_PARAMS': {
             'access_type': 'online',
         },
+        'APP': {
+            'client_id': os.getenv('GOOGLE_OAUTH_CLIENT_ID'),
+            'secret': os.getenv('GOOGLE_OAUTH_CLIENT_SECRET'),
+        }
         # 'OAUTH_PKCE_ENABLED': True,
     }
 }
@@ -166,3 +177,9 @@ LOGOUT_REDIRECT_URL = '/user/logout'
 # Other optional Allauth settings
 # ACCOUNT_EMAIL_REQUIRED = True
 # ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#     )
+# }
