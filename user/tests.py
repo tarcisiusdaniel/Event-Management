@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.sites.models import Site
 from unittest.mock import patch, MagicMock
@@ -13,13 +13,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# User = get_user_model()
-
 # Create your tests here.
 class GoogleSSOAuthenticationTest(TestCase):
     # setup testing environment
     # e.g.: creating users or initialize variables
     def setUp(self):
+        self.client = Client()
+
         site, created = Site.objects.get_or_create(id=1, defaults={
             'domain': 'localhost',
             'name': 'localhost'
@@ -34,11 +34,11 @@ class GoogleSSOAuthenticationTest(TestCase):
             secret = os.getenv('GOOGLE_OAUTH_CLIENT_SECRET')
         )
 
-        self.google_app.sites.add(site)  # Associate with the site
+        self.google_app.sites.add(1)  # Associate with the site
 
         # mock the user that can be used to log in
-        self.username = 'abcd'
-        self.email = 'abcd@mail.com'
+        self.username = 'test'
+        self.email = 'test@mail.com'
         self.password = "efgh4321"
         self.user = User.objects.create_user(
             username = self.username,
@@ -66,21 +66,23 @@ class GoogleSSOAuthenticationTest(TestCase):
         self.assertTrue(response.url.startswith('https://accounts.google.com/o/oauth2/v2/'))
 
     # Mock Google Callback and Test User Creation/Login
+    # Mock of the post that can be done from user/login and test the redirect
     # @patch('allauth.socialaccount.providers.google.views.GoogleOAuth2Adapter.complete_login')
     # @patch('allauth.socialaccount.providers.google.views.GoogleOAuth2Adapter.get_provider')
-    def test_google_callback_success(self):
-        """
-        Test that the successful google callback creates a user and logs them in with redirecting to right url.
-        """
+    # def test_google_callback_success(self):
+    #     """
+    #     Test that the successful google callback creates a user and logs them in with redirecting to right url.
+    #     """
     
-    def test_google_callback_failure(self):
-        """
-        Test that the unsuccessful google callback does not create a user.
-        """
+    # def test_google_callback_failure(self):
+    #     """
+    #     Test that the unsuccessful google callback does not create a user.
+    #     """
 
     def test_login_success(self):
         """
         Test to see if login successfully gives the right behavior (redirect to right url or not)
+        This is also what happens after google callback being done after choosing the right google account
         """
 
         response = self.client.post(reverse('account_login'), {
@@ -108,4 +110,5 @@ class GoogleSSOAuthenticationTest(TestCase):
         self.assertEqual(response.status_code, 200)
     
     def tearDown(self):
-        pass        
+        SocialApp.objects.all().delete()
+        pass

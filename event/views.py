@@ -60,7 +60,11 @@ def create_event(request):
         )
         new_event.save()
     
-    return HttpResponse("Done")
+    return JsonResponse({
+        'status_code': 201,
+        'status': "Success",
+        'description': "Successfully create event"
+    })
 
 # •	Retrieve: Users should be able to view a list of events of certain user.
 def retrieve_events_by_user_id(request, user_id):
@@ -86,7 +90,7 @@ def retrieve_events_by_user_id(request, user_id):
                 "title": event.title,
                 "description": event.description,
                 'date': event.date,
-                'location': event.description,
+                'location': event.location,
                 'created_by': {
                     'email': event.created_by.email,
                     'first_name': event.created_by.first_name,
@@ -96,11 +100,14 @@ def retrieve_events_by_user_id(request, user_id):
             # print(user_events)
         except User.DoesNotExist:
             return JsonResponse({
+                'status_code': 404,
                 'status': "Failed",
                 'description': "The user does not exist"
             })
 
     return JsonResponse({
+        'status_code': 200,
+        'status': "Success",
         'user_events': user_events
     })
 
@@ -130,7 +137,7 @@ def retrieve_events(request):
             "title": event.title,
             "description": event.description,
             'date': event.date,
-            'location': event.description,
+            'location': event.location,
             'created_by': {
                 'email': event.created_by.email,
                 'first_name': event.created_by.first_name,
@@ -140,6 +147,8 @@ def retrieve_events(request):
         # print(user_events)
 
     return JsonResponse({
+        'status_code': 200,
+        'status': "Success",
         'user_events': user_events
     })
 
