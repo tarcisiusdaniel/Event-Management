@@ -43,7 +43,7 @@ def login_handler(request):
 
         sign_in_json_response = user_sign_in_handler(email, first_name, last_name)
         # print(response)
-        jwt_response = jwt_handler(email, first_name, last_name)
+        jwt_response = jwt_handler(email, first_name, last_name, sign_in_json_response['id'])
 
         # if the sign in and making jwt are success
         if sign_in_json_response['status'] == 'Success' and jwt_response['status'] == 'Success':
@@ -58,7 +58,7 @@ def login_handler(request):
             # return HttpResponse('Login Success. JWT Token, ' + f'${jwt_response['jwt_token']}')
 
         # if fail
-    return Response({
+    return JsonResponse({
         'status': 'Login Fail'
     })
 
@@ -75,8 +75,10 @@ def user_sign_in_handler(email, first_name, last_name):
             'description': 'Email does not exist',
         }
     response = ""
+    id = 0
     try :
         tuple = User.objects.get(email = email, first_name = first_name, last_name = last_name)
+        id = tuple.id
         response = "Tuple already exist. Signing in, but not making new tuple"
     except User.DoesNotExist :
         new_tuple = User(email = email, first_name = first_name, last_name = last_name)
@@ -85,11 +87,12 @@ def user_sign_in_handler(email, first_name, last_name):
     return {
         'status': 'Success',
         'description': response,
+        'id': id,
     }
 
-def jwt_handler(email, first_name, last_name):
+def jwt_handler(email, first_name, last_name, id):
     """
-    Handling JWT for authentication. Put the  
+    Handling JWT for authentication.  
     """
     if email == '':
         return {
@@ -97,6 +100,7 @@ def jwt_handler(email, first_name, last_name):
             'description': 'Email does not exist',
         }
     payload = {
+        "id": id,
         "email": email,
         "first_name": first_name,
         "last_name": last_name,
@@ -114,30 +118,40 @@ def user_auth_jwt(request):
     Authenticate user with the JWT
     """
     token = request.COOKIES.get('jwt_token')
-    print(token)
+    # print(token)
     if not token:
         return JsonResponse({
             'status': "Failed",
             'description': "Token is invalid"
         })
     
+    user_info = {}
     try:
         payload = jwt.decode(token, os.getenv('JWT_SECRET'), algorithms=['HS256'])
         tuple = User.objects.get(email = payload['email'], first_name = payload['first_name'], last_name = payload['last_name'])
+        user_info['id'] = payload['id']
+        user_info['email'] = payload['email']
+        user_info['first_name'] = payload['first_name']
+        user_info['last_name'] = payload['last_name']
     except jwt.ExpiredSignatureError:
-        return JsonResponse({
+        response = JsonResponse({
             'status': "Failed",
             'description': "Token Expired"
         })
+        response.delete_cookie('jwt_token')
+        return response
     except User.DoesNotExist:
-        return JsonResponse({
+        response = JsonResponse({
             'status': "Failed",
             'description': "User does not exists in the database"
         })
+        response.delete_cookie('jwt_token')
+        return response
 
     return JsonResponse({
         'status': "Success",
-        'description': "User is authenticated"
+        'description': "User is authenticated",
+        'user_info': user_info,
     })
 
 
@@ -145,4 +159,9 @@ def logout_handler(request):
     """
     Handling log out
     """
-    return HttpResponse("Bye")
+    response_data = {
+        'status': 'Success'
+    }
+    response = JsonResponse(response_data)
+    response.delete_cookie('jwt_token')
+    return response

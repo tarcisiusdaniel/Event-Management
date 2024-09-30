@@ -22,5 +22,6 @@ import allauth
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('user/', include('user.urls'), name='user'),
+    path('event/', include('event.urls'), name='event'),
     path('accounts/', include('allauth.urls')),
 ]
