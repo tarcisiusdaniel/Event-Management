@@ -16,7 +16,7 @@ def auth_user(request):
     if auth_response_status == 'Failed':
         return {
             'status_code': 401,
-            'description': "Unauthorized",
+            'description': auth_response.get("description"),
             'user_info': {}
         }
     

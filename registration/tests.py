@@ -53,6 +53,23 @@ class RegistrationTest(TestCase):
         self.assertEqual(response_json_data['status'], "Success")
         self.assertTrue(Registration.objects.filter(user = self.user_id, event = self.user_event_id))
 
+    def test_register_user_to_event_user_not_exist(self):
+        """
+        Test registering the logged in user to an event, but fail because the event does not exist
+        """
+        non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
+        self.jwt = non_exist_user_jwt_response['jwt_token']
+        self.client.cookies['jwt_token'] = self.jwt
+
+        url = reverse('Register User to an Event', kwargs = {'event_id': 2141})
+        response = self.client.post(url)
+
+        response_decoded_string = response.content.decode('utf-8')
+        response_json_data = json.loads(response_decoded_string)
+        
+        self.assertEqual(response_json_data['status_code'], 401)
+        self.assertEqual(response_json_data['description'], "User does not exists in the database")
+
     def test_register_user_to_event_fail(self):
         """
         Test registering the logged in user to an event, but fail because the event does not exist
