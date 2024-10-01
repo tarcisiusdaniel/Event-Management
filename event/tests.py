@@ -1,6 +1,5 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-# from django.contrib.sites.models import Site
 from .models import Event
 from user.models import User
 from user.views import jwt_handler
@@ -27,7 +26,6 @@ class EventsCRUDTest(TestCase):
         jwt_response = jwt_handler(self.user.email, self.user.first_name, self.user.last_name, self.user_id)
         self.jwt = jwt_response['jwt_token']
         self.client.cookies['jwt_token'] = self.jwt
-        # print(jwt_response['status'])
     
     def test_create_event(self):
         """
@@ -48,10 +46,10 @@ class EventsCRUDTest(TestCase):
         response_decoded_string = response.content.decode('utf-8')
         response_json_data = json.loads(response_decoded_string)
 
-        # print(response.content)
         self.assertEqual(response_json_data['status_code'], 201)
         self.assertEqual(response_json_data['status'], "Success")
         self.assertTrue(Event.objects.filter(title="Test123 Event Title").exists())
+        self.event_id = Event.objects.filter(title="Test123 Event Title")[0].id
 
     def test_retrieve_events_by_user_id_success(self):
         """
@@ -66,7 +64,6 @@ class EventsCRUDTest(TestCase):
 
         self.assertEqual(response_json_data['status_code'], 200)
         self.assertEqual(response_json_data['status'], "Success")
-        # print(len(response_json_data['user_events']))
         self.assertTrue(len(response_json_data['user_events']) > 0)
     
     def test_retrieve_events_by_user_id_fail(self):
@@ -82,7 +79,6 @@ class EventsCRUDTest(TestCase):
 
         self.assertEqual(response_json_data['status_code'], 404)
         self.assertEqual(response_json_data['status'], "Failed")
-        # print(len(response_json_data['user_events']))
         self.assertTrue(not hasattr(response_json_data, 'user_events'))
 
     def test_retrieve_events(self):
@@ -98,25 +94,93 @@ class EventsCRUDTest(TestCase):
 
         self.assertEqual(response_json_data['status_code'], 200)
         self.assertEqual(response_json_data['status'], "Success")
-        # print(len(response_json_data['user_events']))
         self.assertTrue(len(response_json_data['user_events']) > 0)
 
-    def test_update_event(self):
+    def test_update_event_success(self):
         """
-        Test to update an event of the current logged in user
+        Test to update an event of the current logged in user successfully
         """
         self.test_create_event()
-        url = reverse('Retrieve Own Events')
-        response = self.client.get(url)
+
+        new_data = {
+            "title": "Test123 Event New Title From Update",
+            "description": "Test123 Event description for testing. This is the neew updated description",
+            'date': '2024-02-02',
+            'location': "51423 99st Test Ave W, TestCity WA 98413",
+        }
+
+        json_data = json.dumps(new_data)
+
+        url = reverse('Update Event', kwargs = {'event_id': self.event_id })
+        response = self.client.put(url, data = json_data, content_type = 'application/json')
 
         response_decoded_string = response.content.decode('utf-8')
         response_json_data = json.loads(response_decoded_string)
 
         self.assertEqual(response_json_data['status_code'], 200)
         self.assertEqual(response_json_data['status'], "Success")
-        # print(len(response_json_data['user_events']))
-        self.assertTrue(len(response_json_data['user_events']) > 0)
-    # def test_delete_event(self):
+        self.assertEqual(response_json_data['updated_count'], 1)
+        self.assertTrue(Event.objects.filter(title="Test123 Event New Title From Update").exists())
+
+    def test_update_event_fail(self):
+        """
+        Test to update an event of the current logged in user but fail
+        """
+        self.test_create_event()
+
+        new_data = {
+            "title": "Test123 Event New Title From Update",
+            "description": "Test123 Event description for testing. This is the neew updated description",
+            'date': '2024-02-02',
+            'location': "51423 99st Test Ave W, TestCity WA 98413",
+        }
+
+        json_data = json.dumps(new_data)
+
+        url = reverse('Update Event', kwargs = {'event_id': 300 })
+        response = self.client.put(url, data = json_data, content_type = 'application/json')
+
+        response_decoded_string = response.content.decode('utf-8')
+        response_json_data = json.loads(response_decoded_string)
+
+        self.assertEqual(response_json_data['status_code'], 404)
+        self.assertEqual(response_json_data['status'], "Failed")
+        self.assertEqual(response_json_data['updated_count'], 0)
+        self.assertTrue(not Event.objects.filter(title="Test123 Event New Title From Update").exists())
+
+    def test_delete_event_success(self):
+        """
+        Test to delete an event of the current logged in user successfully
+        """
+        self.test_create_event()
+
+        url = reverse('Delete Event', kwargs = {'event_id': self.event_id })
+        response = self.client.delete(url)
+
+        response_decoded_string = response.content.decode('utf-8')
+        response_json_data = json.loads(response_decoded_string)
+
+        self.assertEqual(response_json_data['status_code'], 200)
+        self.assertEqual(response_json_data['status'], "Success")
+        self.assertEqual(response_json_data['deleted_count'], 1)
+        self.assertTrue(not Event.objects.filter(title="Test123 Event Title").exists())
+
+    def test_delete_event_fail(self):
+        """
+        Test to delete an event of the current logged in user successfully
+        """
+        self.test_create_event()
+
+        url = reverse('Delete Event', kwargs = {'event_id': 712398 })
+        response = self.client.delete(url)
+
+        response_decoded_string = response.content.decode('utf-8')
+        response_json_data = json.loads(response_decoded_string)
+
+        self.assertEqual(response_json_data['status_code'], 404)
+        self.assertEqual(response_json_data['status'], "Failed")
+        self.assertEqual(response_json_data['deleted_count'], 0)
+        self.assertTrue(Event.objects.filter(title="Test123 Event Title").exists())
 
     def tearDown(self):
         pass

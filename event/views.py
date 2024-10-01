@@ -1,20 +1,9 @@
-from django.shortcuts import render
+# from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from django.contrib.auth.decorators import login_required
 from user.views import user_auth_jwt
 import jwt, datetime, json
 from .models import Event
 from user.models import User
-
-import os
-from dotenv import load_dotenv
-
-
-load_dotenv()
-
-# Create your views here.
-
-# In here, always check the authorization of the API caller 
 
 def index(request):
     """
@@ -28,19 +17,39 @@ def index(request):
 
     return HttpResponse("Hello World")
 
-# •	Create: Users should be able to create events.
-def create_event(request):
+def auth_user(request):
     """
-    API to Create an event for the user
+    Authenticate the current user
     """
     auth_response = json.loads(user_auth_jwt(request).content)
     auth_response_status = auth_response.get("status")
 
     if auth_response_status == 'Failed':
-        return HttpResponse(auth_response.get("description"))
+        return {
+            'status_code': 401,
+            'description': "Unauthorized",
+            'user_info': {}
+        }
     
     # extract user info after authentication
     user_info = auth_response.get("user_info")
+
+    return {
+        'status_code': 200,
+        'description': "Authorized",
+        'user_info': user_info
+    }
+
+# •	Create: Users should be able to create events.
+def create_event(request):
+    """
+    API to Create an event for the user
+    """
+    auth_response = auth_user(request)
+    if auth_response['status_code'] == 401:
+        return auth_response
+    # extract user info after authentication
+    user_info = auth_response['user_info']
     
     # create the event using POST request
     if request.method == 'POST':
@@ -71,11 +80,11 @@ def retrieve_events_by_user_id(request, user_id):
     """
     API to get events created by the user
     """
-    auth_response = json.loads(user_auth_jwt(request).content)
-    auth_response_status = auth_response.get("status")
-
-    if auth_response_status == 'Failed':
-        return HttpResponse(auth_response.get("description"))
+    auth_response = auth_user(request)
+    if auth_response['status_code'] == 401:
+        return auth_response
+    # # extract user info after authentication
+    # user_info = auth_response['user_info']
 
     user_events = []
     # retrieve the events using GET request
@@ -116,14 +125,11 @@ def retrieve_events(request):
     """
     API to get events created by the user
     """
-    auth_response = json.loads(user_auth_jwt(request).content)
-    auth_response_status = auth_response.get("status")
-
-    if auth_response_status == 'Failed':
-        return HttpResponse(auth_response.get("description"))
-    
+    auth_response = auth_user(request)
+    if auth_response['status_code'] == 401:
+        return auth_response
     # extract user info after authentication
-    user_info = auth_response.get("user_info")
+    user_info = auth_response['user_info']
 
     user_events = []
 
@@ -159,14 +165,11 @@ def update_event(request, event_id):
     """
     API to Update an event for the user
     """
-    auth_response = json.loads(user_auth_jwt(request).content)
-    auth_response_status = auth_response.get("status")
-
-    if auth_response_status == 'Failed':
-        return HttpResponse(auth_response.get("description"))
-    
+    auth_response = auth_user(request)
+    if auth_response['status_code'] == 401:
+        return auth_response
     # extract user info after authentication
-    user_info = auth_response.get("user_info")
+    user_info = auth_response['user_info']
 
     # update an event using PUT request
     if request.method == 'PUT':
@@ -186,9 +189,17 @@ def update_event(request, event_id):
         )
 
         if (updated_count > 0):
-            return HttpResponse("Updated count: " + f'{updated_count}')
+            return JsonResponse({
+                'status_code': 200,
+                'status': "Success",
+                'updated_count': updated_count
+            })
 
-    return HttpResponse("No update done")
+    return JsonResponse({
+        'status_code': 404,
+        'status': "Failed",
+        'updated_count': 0
+    })
 
 # •	Delete: Users can delete the events they created.
 # delete can be not done because the event is not user's
@@ -197,14 +208,11 @@ def delete_event(request, event_id):
     """
     API to Create an event for the user
     """
-    auth_response = json.loads(user_auth_jwt(request).content)
-    auth_response_status = auth_response.get("status")
-
-    if auth_response_status == 'Failed':
-        return HttpResponse(auth_response.get("description"))
-    
+    auth_response = auth_user(request)
+    if auth_response['status_code'] == 401:
+        return auth_response
     # extract user info after authentication
-    user_info = auth_response.get("user_info")
+    user_info = auth_response['user_info']
 
     # delete an event using DELETE request
     if request.method == 'DELETE':
@@ -212,8 +220,16 @@ def delete_event(request, event_id):
             id = event_id,
             created_by = user_info['id']
         )
-        deleted_count, _ = event_to_delete.delete()
+        deleted_count, tuple = event_to_delete.delete()
         if (deleted_count > 0):
-            return HttpResponse("Delete count: " + f'{deleted_count}')
+            return JsonResponse({
+                'status_code': 200,
+                'status': "Success",
+                'deleted_count': deleted_count
+            })
 
-    return HttpResponse("No deletion")
+    return JsonResponse({
+        'status_code': 404,
+        'status': "Failed",
+        'deleted_count': 0
+    })
