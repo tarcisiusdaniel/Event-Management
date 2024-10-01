@@ -49,12 +49,10 @@ The ``requirements.txt`` contains all the dependencies that supports this projec
 
 <br />
 4. Set up the Environment Variables:
-<br />
+<br /> 
 For this, you will need .env file that contains the credentials that rooted the services in this project.
-<br />
 
 The sample of the variables needed will be inside the ``.env.example`` file. 
-<br />
 I will give the values of variables needed for the file to you personally. 
 
 <br />
