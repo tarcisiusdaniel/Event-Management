@@ -5,7 +5,7 @@ Welcome to my Event Management project. This project builds a system that provid
 ## Table of Contents
 - [Setting Up The Project](#setting-up-the-project)
 - [Data Model](#data-model)
-- [Overview] (#overview)
+- [Overview](#overview)
 - [Testing](#testing)
 
 ## Setting Up The Project
