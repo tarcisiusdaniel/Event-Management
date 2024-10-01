@@ -30,7 +30,7 @@ def auth_user(request):
 def index(request):
     auth_response = auth_user(request)
     if auth_response['status_code'] == 401:
-        return auth_response
+        return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
 
@@ -47,7 +47,7 @@ def register_user_to_event(request, event_id):
     """
     auth_response = auth_user(request)
     if auth_response['status_code'] == 401:
-        return auth_response
+        return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
 

@@ -80,9 +80,22 @@ There are three entities in this data model:
 
 Here is the relations between the models
 
-![Event Management Data Model](./data_model.png)
+<img src="./data_model.png" alt="Event Management Data Model" width="650" height="400">
+
+From the picture above, the user has one to many (1->M) relationship, because a user can create and have more than one event(s). The user also has one to many (1->M) relationship, because a user can make more than one registration(s), and a registration can only point to one event. 
+
+The registration has one to many (1->M) relationship because an event can hold more than one registration(s) from a user, and a registration can only point to one user.
 
 ## Overview
 
+This passage will show the overview of how the system works by giving explanations and snippets of how the API endpoints work. I will also explain what the API's HTTP methods uses, the things each API needs to work, and the URL endpoints.
+
+### User APIs
+
+There are
+
+### Event APIs
+
+### Registration APIs
 
 ## Testing

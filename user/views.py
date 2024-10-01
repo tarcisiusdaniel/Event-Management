@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from .models import User
 import jwt, datetime, json
@@ -13,7 +14,7 @@ load_dotenv()
 def index(request):
     return HttpResponse('Hello World')
 
-# @login_required
+@login_required
 def login_handler(request):
     """
     Handling login using any kind of method (Google SSO, normal sign in, etc.)
@@ -21,20 +22,17 @@ def login_handler(request):
     email = ""
     first_name = ""
     last_name = ""
-    if request.body:
-        decoded_string = request.body.decode('utf-8')
-        json_data = json.loads(decoded_string)
-        email = json_data['user']['email']
-        first_name = json_data['user']['first_name']
-        last_name = json_data['user']['last_name']
     
     # this can come from sso
-    elif request.user:
+    if request.user.is_authenticated:
         email = request.user.email
         first_name = request.user.first_name
         last_name = request.user.last_name
+        print(email)
+        print(first_name)
+        print(last_name)
 
-    if email != "" and first_name != "" and last_name != "":
+    if request.user.is_authenticated and email != "" and first_name != "" and last_name != "":
         # create the user
         # code right here to create the user and store it in postgresql table
         # also, make the session for the sign-in
@@ -159,6 +157,7 @@ def logout_handler(request):
     """
     Handling log out
     """
+    logout(request)
     response_data = {
         'status': 'Success'
     }

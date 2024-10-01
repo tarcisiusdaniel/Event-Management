@@ -23,7 +23,7 @@ def auth_user(request):
     """
     auth_response = json.loads(user_auth_jwt(request).content)
     auth_response_status = auth_response.get("status")
-
+    
     if auth_response_status == 'Failed':
         return {
             'status_code': 401,
@@ -47,7 +47,7 @@ def create_event(request):
     """
     auth_response = auth_user(request)
     if auth_response['status_code'] == 401:
-        return auth_response
+        return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
     
@@ -82,7 +82,7 @@ def retrieve_events_by_user_id(request, user_id):
     """
     auth_response = auth_user(request)
     if auth_response['status_code'] == 401:
-        return auth_response
+        return JsonResponse(auth_response)
     # # extract user info after authentication
     # user_info = auth_response['user_info']
 
@@ -127,7 +127,7 @@ def retrieve_events(request):
     """
     auth_response = auth_user(request)
     if auth_response['status_code'] == 401:
-        return auth_response
+        return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
 
@@ -167,7 +167,7 @@ def update_event(request, event_id):
     """
     auth_response = auth_user(request)
     if auth_response['status_code'] == 401:
-        return auth_response
+        return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
 
@@ -210,7 +210,7 @@ def delete_event(request, event_id):
     """
     auth_response = auth_user(request)
     if auth_response['status_code'] == 401:
-        return auth_response
+        return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
 
