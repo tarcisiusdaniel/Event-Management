@@ -5,6 +5,7 @@ Welcome to my Event Management project. This project builds a system that provid
 ## Table of Contents
 - [Setting Up The Project](#setting-up-the-project)
 - [Data Model](#data-model)
+- [Overview] (#overview)
 - [Testing](#testing)
 
 ## Setting Up The Project
@@ -71,3 +72,17 @@ python3 manage.py runserver
 ```
 After this command, the project will run, and you will be able to test the microservices built within this project
 
+## Data Model
+There are three entities in this data model:
+- User
+- Event
+- Registration
+
+Here is the relations between the models
+
+![Event Management Data Model](./data_model.png)
+
+## Overview
+
+
+## Testing
