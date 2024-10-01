@@ -5,17 +5,6 @@ import jwt, datetime, json
 from .models import Event
 from user.models import User
 
-def index(request):
-    """
-    The index view for event model
-    """
-    auth_response = json.loads(user_auth_jwt(request).content)
-    auth_response_status = auth_response.get("status")
-
-    if auth_response_status == 'Failed':
-        return HttpResponse(auth_response.get("description"))
-
-    return HttpResponse("Hello World")
 
 def auth_user(request):
     """

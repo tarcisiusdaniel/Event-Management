@@ -2,11 +2,9 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.sites.models import Site
 from unittest.mock import patch, MagicMock
-from allauth.socialaccount.models import SocialApp, SocialAccount, SocialLogin
-# from django.contrib.auth import get_user_model 
+from allauth.socialaccount.models import SocialApp
 from django.contrib.auth.models import User
-
-from allauth.socialaccount.providers.google.provider import GoogleProvider
+from .models import User as U
 
 import os
 from dotenv import load_dotenv
@@ -40,10 +38,14 @@ class GoogleSSOAuthenticationTest(TestCase):
         self.username = 'test'
         self.email = 'test@mail.com'
         self.password = "efgh4321"
+        self.first_name = "Test"
+        self.last_name = "123"
         self.user = User.objects.create_user(
             username = self.username,
             email = self.email,
             password = self.password,
+            first_name = self.first_name,
+            last_name = self.last_name,
         )
 
         self.google_login_url = reverse('google_login')
@@ -65,50 +67,67 @@ class GoogleSSOAuthenticationTest(TestCase):
         # check if the redirect URL has Google OAuth's URL
         self.assertTrue(response.url.startswith('https://accounts.google.com/o/oauth2/v2/'))
 
-    # Mock Google Callback and Test User Creation/Login
-    # Mock of the post that can be done from user/login and test the redirect
-    # @patch('allauth.socialaccount.providers.google.views.GoogleOAuth2Adapter.complete_login')
-    # @patch('allauth.socialaccount.providers.google.views.GoogleOAuth2Adapter.get_provider')
-    # def test_google_callback_success(self):
-    #     """
-    #     Test that the successful google callback creates a user and logs them in with redirecting to right url.
-    #     """
-    
-    # def test_google_callback_failure(self):
-    #     """
-    #     Test that the unsuccessful google callback does not create a user.
-    #     """
-
     def test_login_success(self):
         """
         Test to see if login successfully gives the right behavior (redirect to right url or not)
         This is also what happens after google callback being done after choosing the right google account
         """
+        self.client.login(
+            username = self.username,
+            password = self.password
+        )
 
-        response = self.client.post(reverse('account_login'), {
-            'login': self.username,
-            'password': self.password
-        })
-        
-        # print(response.content)
+        response = self.client.get(reverse('Login Handler'))
+        # print(response.cookies['jwt_token'].value)
 
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('Login Handler'), status_code=302, target_status_code=200)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(len(U.objects.filter(email = self.email, first_name = self.first_name, last_name = self.last_name)) == 1)
+        self.assertTrue(self.client.cookies['jwt_token'].value != "")
 
     def test_login_failure(self):
         """
         Test to see if login not successfully gives the right behavior (stay in the login page)
         """
+        self.user.email = ""
+        self.user.first_name = ""
+        self.user.last_name = ""
+        self.user.save()
 
-        response = self.client.post(reverse('account_login'), {
-            'login': self.username,
-            'password': 'wrongpw'
-        })
-        
-        # print(response.content)
+        self.client.login(
+            username = self.username,
+            password = self.password
+        )
+
+        response = self.client.get(reverse('Login Handler'))
 
         self.assertEqual(response.status_code, 200)
     
+    def test_login_success_without_creating_user(self):
+        """
+        Test to see if login successfully gives the right behavior (redirect to right url or not)
+        This is also what happens after google callback being done after choosing the right google account
+        """
+        self.test_login_success()
+        # print(self.user.email)
+        # print(self.user.first_name)
+        # print(self.user.last_name)
+        self.client.login(
+            username = self.username,
+            password = self.password
+        )
+
+        response = self.client.get(reverse('Login Handler'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(len(U.objects.filter(email = self.email, first_name = self.first_name, last_name = self.last_name)) == 1)
+
+    def test_logout(self):
+        response = self.client.get(reverse('Logout Handler'))
+
+        # print(response.cookies['jwt_token'])
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.cookies['jwt_token'].value == "")
+    
     def tearDown(self):
-        SocialApp.objects.all().delete()
+        # SocialApp.objects.all().delete()
         pass

@@ -7,12 +7,7 @@ import jwt, datetime, json
 import os
 from dotenv import load_dotenv
 
-
 load_dotenv()
-
-# Create your views here.
-def index(request):
-    return HttpResponse('Hello World')
 
 @login_required
 def login_handler(request):
@@ -28,9 +23,9 @@ def login_handler(request):
         email = request.user.email
         first_name = request.user.first_name
         last_name = request.user.last_name
-        print(email)
-        print(first_name)
-        print(last_name)
+        # print(email)
+        # print(first_name)
+        # print(last_name)
 
     if request.user.is_authenticated and email != "" and first_name != "" and last_name != "":
         # create the user
@@ -57,7 +52,8 @@ def login_handler(request):
 
         # if fail
     return JsonResponse({
-        'status': 'Login Fail'
+        'status': 'Login Fail',
+        'description': 'Invalid email, first name, and last name'
     })
 
     # return HttpResponse('Login Fail')
@@ -67,11 +63,6 @@ def user_sign_in_handler(email, first_name, last_name):
     """
     Handling user creation upon login
     """
-    if email == '':
-        return {
-            'status': 'Fail',
-            'description': 'Email does not exist',
-        }
     response = ""
     id = 0
     try :
@@ -92,11 +83,6 @@ def jwt_handler(email, first_name, last_name, id):
     """
     Handling JWT for authentication.  
     """
-    if email == '':
-        return {
-            'status': 'Fail',
-            'description': 'Email does not exist',
-        }
     payload = {
         "id": id,
         "email": email,
@@ -159,6 +145,7 @@ def logout_handler(request):
     """
     logout(request)
     response_data = {
+        'status_code': 200,
         'status': 'Success'
     }
     response = JsonResponse(response_data)

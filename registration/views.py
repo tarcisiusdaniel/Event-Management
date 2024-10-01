@@ -27,15 +27,6 @@ def auth_user(request):
         'user_info': user_info
     }
 
-def index(request):
-    auth_response = auth_user(request)
-    if auth_response['status_code'] == 401:
-        return JsonResponse(auth_response)
-    # extract user info after authentication
-    user_info = auth_response['user_info']
-
-    return HttpResponse("Hello From Registration")
-
 # •	Allow users to register for an event:
 # •	A user can register for any event.
 # •	A user cannot register for the same event twice.
