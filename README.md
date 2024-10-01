@@ -50,7 +50,7 @@ The ``requirements.txt`` contains all the dependencies that supports this projec
 
 #### 5. Set up the Environment Variables:
 
-For this, you will need .env file that contains the credentials that rooted the services in this project. The sample of the variables needed will be inside the ``.env.example`` file. I will give the values of variables needed for the file to you personally. 
+For this, you will need .env file that contains the credentials that rooted the services in this project. The sample of the variables needed will be inside the ``.env.example`` file. I will give the values of variables needed for the file to you personally.
 
 #### 6. Create and Migrate the database:
 
@@ -69,7 +69,7 @@ After this command, the project will run, and you will be able to test the micro
 #### 8. Setup several of the supporting softwares (Recommended)
 The softwares listed are really recommended as I used these tools to help running the software and checking to see if the APIs are running correctly.
 - <a href = 'https://www.pgadmin.org/download/'>pgAdmin</a>
-- Postman
+- <a href = 'https://www.postman.com/downloads/'>Postman</a>
 
 You can substitue pgAdmin with terminal to manage and oversee the Postgre database, and use software other than Postman to test your APIs. However, for simplicity in understanding the [Overview](#overview) section, it is better to use the two software previously mentioned
 
@@ -91,26 +91,85 @@ The registration has one to many (1->M) relationship because an event can hold m
 
 This passage will show the overview of how the system works by giving explanations and snippets of how the API endpoints work. I will also explain what the API's HTTP methods uses, the things each API needs to work, and the URL endpoints.
 
-This application is still in development, so it will use http://localhost:8000 to run the application locally in port 8000.
+The event management system has three applications that builds the [models](#data-model) in the PostgreSQL database and the views (logic behind the services for the models) for the system in Django
+
+Note: This application is still in development, so it will use `http://localhost:8000` to run the application locally in port 8000.
 
 ### User
 
-This is the application that handles user logging activity, annd authentication for running other APIs that maintains the main services of the event management system. There are two main URL endpoints that builds the User app operations:
+This is the application that handles user logging activity, and authentication by generating and using Json Web Token(JWT) to run the core services APIs of the event management system. 
+
+I set the JWT to expire by 1 hour after creation, meaning that the JWT token will authenticate the user to run the core services of the system in 1 hour.
+
+There are two main URL endpoints that builds the User app operations:
 
 - ``http://localhost:8000/user/login``, 
-    - This URL is a POST method used as the end point to log the user in, and post the user in the database if the user does not exist in the database. If you call this when you are not signed in, you will be taken to a standard Django page, where you can sign in by using your Google account.
+    - This URL is a POST method used as the end point to log the user in, and post the user in the database if the user does not exist in the database (avoid duplicate users in the database). If you call this when you are not signed in, you will be taken to a standard Django page, where you can sign in by using your Google account.
 
     <img src="./images/user/sign_in_landing.png" alt="Event Management Data Model" width="450" height="280">
 
-    Afterwards, click the <b>Google</b> link, and you will be brought to the following page
+    Click the <b>Google</b> link, and you will be brought to a page to continue signing in using google account
 
-    <img src="./images/user/sign_in_via_google.png" alt="Event Management Data Model" width="450" height="280">
+    <img src="./images/user/sign_in_via_google.png" alt="Event Management Data Model" width="450" height="250">
 
-- ``http://localhost:8000/user/logout``
+    Click <b>continue</b>, and you will go to the Google SSO page.
+
+    <img src="./images/user/google_sso_page.png" alt="Event Management Data Model" width="450" height="220">
+
+    Then, you will find yourself looking at the page that provides you with your Json Web Token. This will tell you that you have successfully logged in
+
+    <img src="./images/user/user_login.png" alt="Event Management Data Model" width="450" height="150">
+
+    Notice that you will be able to run the system's main services from the browser, because the JWT is already saved in the cookies, and the main services in this system will grab the JWT in the cookies automatically before executing. 
+    
+    <b>Note</b>: Save the ``jwt_token`` for testing the services in Postman application.
+
+- `http://localhost:8000/user/logout`
+    - Hitting this will erase the user's authentication and JWT in the cookie.
+
+    <img src="./images/user/logout.png" alt="Event Management Data Model" width="450" height="150">
 
 
-### Event APIs
+### Event
 
-### Registration APIs
+This is the application that handles the CRUD services to the event model in the database. The user needs to login before accessing these APIs. If not, the user will not be authorized. Here are the end points for the operations:
 
-## Testing
+- `localhost:8000/event/create`
+    - This is the URL endpoint with POST method for the logged-in user to create an event. You will need a JSON data that contains the details of the event that wants to be created.
+
+    <img src="./images/events/create_event.png" alt="Event Management Data Model" width="450" height="350">
+    <img src="./images/events/create_event_result.png" alt="Event Management Data Model" width="450" height="350">
+
+- `localhost:8000/event/retrieve/id/<int:user_id>`
+    - This is the URL endpoint with GET method for retrieving list a user's event(s). The user has the id of `<int:user_id>`
+
+    <img src="./images/events/retrieve_event_by_id.png" alt="Event Management Data Model" width="450" height="350">
+
+- `localhost:8000/event/retrieve`
+    - This is the URL endpoint with GET method for the logged-in user to retrieve the event(s) he/she created
+
+    <img src="./images/events/retrieve_event.png" alt="Event Management Data Model" width="450" height="350">
+
+- `localhost:8000/event/delete/id/<int:event_id>`
+    - This is the URL endpoint with DELETE method for the logged-in user to delete one of the event(s) he/she created. This will delete the event with id of `<int:event_id>`
+
+    <img src="./images/events/delete_event.png" alt="Event Management Data Model" width="450" height="350">
+
+- `localhost:8000/event/update/id/<int:event_id>`
+    - This is the URL endpoint with PUT method for the logged-in user to update the details of one of the event(s) he/she created. This will update the event with id of `<int:event_id>`
+
+    <img src="./images/events/update_event.png" alt="Event Management Data Model" width="450" height="350">
+
+### Registration
+
+This is the application that is responsible to make registration to an event. Here is the endpoint(s) of the services:
+
+- `localhost:8000/registration/register/event/id/<int:event_id>`
+    - This is the URL endpoint with PUT method for the logged-in user to register for an event. Once you make a registration, the logged-in user will not be able to make the same registration for the same event again. 
+    This is to avoid duplicate registration.
+    <br /><br />
+    This is when you are trying to make a reservation to an event the first time
+    <img src="./images/registration/user_register.png" alt="Event Management Data Model" width="450" height="350">
+    <br />
+    The second time, the API will not do anything because the registration is already made
+    <img src="./images/registration/user_register_again.png" alt="Event Management Data Model" width="450" height="350">
