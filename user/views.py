@@ -88,8 +88,8 @@ def jwt_handler(email, first_name, last_name, id):
         "email": email,
         "first_name": first_name,
         "last_name": last_name,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=60),
-        'iat': datetime.datetime.utcnow(),
+        'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=60),
+        'iat': datetime.datetime.now(datetime.UTC),
     }
     token = jwt.encode(payload, os.getenv('JWT_SECRET'), algorithm='HS256')
     return {

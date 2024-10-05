@@ -1,298 +1,336 @@
-from django.test import TestCase, Client
+from django.test import Client
 from django.urls import reverse
+
+import pytest
+import os
+import django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'event_management.settings')
+django.setup()
+
 from .models import Event
 from user.models import User
 from user.views import jwt_handler
 import json
 
 # Create your tests here.
-class EventsCRUDTest(TestCase):
-    def setUp(self):
-        """
-        All the set up needed for the event CRUDs tests
-        """
-        # set up the client to do CRUD
-        self.client = Client()
+@pytest.fixture
+def client():
+    """
+    Set up client
+    """
+    return Client()
 
-        # set up the user object
-        self.user = User.objects.create(
-            email = "test123@gmail.com",
-            first_name = "test",
-            last_name = "123"
-        )
-        self.user_id = self.user.id
+@pytest.fixture
+def user():
+    """
+    Set up User object that will be used to call the Event's APIs
+    """
+    user = User.objects.create(
+        email = "test123@gmail.com",
+        first_name = "test",
+        last_name = "123"
+    )
+    return user
 
-        # set up the jwt for the user test
-        jwt_response = jwt_handler(self.user.email, self.user.first_name, self.user.last_name, self.user_id)
-        self.jwt = jwt_response['jwt_token']
-        self.client.cookies['jwt_token'] = self.jwt
+@pytest.fixture
+def event_id():
+    """
+    Set up the event ID created by a User
+    """
+    return [None]
+
+@pytest.fixture
+def jwt_setup(user, client):
+    """
+    Setup JWT, and return the JWT token
+    """
+    jwt_response = jwt_handler(user.email, user.first_name, user.last_name, user.id)
+    jwt_token = jwt_response['jwt_token']
+    client.cookies['jwt_token'] = jwt_token
+    return jwt_token
+
+@pytest.mark.django_db
+def test_create_event(client, user, jwt_setup, event_id):
+    """
+    Test creating events    
+    """
+    data = {
+        "title": "Test123 Event Title",
+        "description": "Test123 Event description for testing",
+        'date': '2024-01-01',
+        'location': "12354 51st Test Ave N, TestCity WA 98413",
+        'created_by': user.id
+    }
+
+    json_data = json.dumps(data)
+
+    response = client.post(reverse('Create Event'), data = json_data, content_type = 'application/json')
+
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
+
+    assert response_json_data['status_code'] == 201
+    assert response_json_data['status'] == "Success"
+    # print(Event.objects.filter(title="Test123 Event Title")[0].id)
+    assert Event.objects.filter(title="Test123 Event Title").exists()
+    assert len(Event.objects.filter(title="Test123 Event Title")) == 1
+    event_id[0] = Event.objects.filter(title="Test123 Event Title")[0].id
+    # return Event.objects.filter(title="Test123 Event Title")[0].id
+    # assert Event.objects.filter(title="Test123 Event Title")[0].id == 1
+
+@pytest.mark.django_db
+def test_create_event_user_not_exists(client, user, jwt_setup):
+    """
+    Test creating events, but fail because the logged in user does not exists 
+    """
+    data = {
+        "title": "Test123 Event Title",
+        "description": "Test123 Event description for testing",
+        'date': '2024-01-01',
+        'location': "12354 51st Test Ave N, TestCity WA 98413",
+        'created_by': user.id
+    }
+
+    json_data = json.dumps(data)
+
+    non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
+    non_exist_user_jwt_token = non_exist_user_jwt_response['jwt_token']
+    client.cookies['jwt_token'] = non_exist_user_jwt_token
     
-    def test_create_event(self):
-        """
-        Test creating events    
-        """
-        data = {
-            "title": "Test123 Event Title",
-            "description": "Test123 Event description for testing",
-            'date': '2024-01-01',
-            'location': "12354 51st Test Ave N, TestCity WA 98413",
-            'created_by': self.user_id
-        }
+    response = client.post(reverse('Create Event'), data = json_data, content_type = 'application/json')
 
-        json_data = json.dumps(data)
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
+    # print(response_json_data)
 
-        response = self.client.post(reverse('Create Event'), data = json_data, content_type = 'application/json')
+    assert response_json_data['status_code'] == 401
+    assert response_json_data['description'] == "User does not exists in the database"
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+@pytest.mark.django_db
+def test_retrieve_events_by_user_id_success(client, user, jwt_setup, event_id):
+    """
+    Test to get events of a user with certain user id successfully
+    """
+    test_create_event(client, user, jwt_setup, event_id)
+    url = reverse("Retrieve Others Events", kwargs = {'user_id': user.id})
+    response = client.get(url)
 
-        self.assertEqual(response_json_data['status_code'], 201)
-        self.assertEqual(response_json_data['status'], "Success")
-        self.assertTrue(Event.objects.filter(title="Test123 Event Title").exists())
-        self.event_id = Event.objects.filter(title="Test123 Event Title")[0].id
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-    def test_create_event_user_not_exists(self):
-        """
-        Test creating events, but fail because the logged in user does not exists 
-        """
-        data = {
-            "title": "Test123 Event Title",
-            "description": "Test123 Event description for testing",
-            'date': '2024-01-01',
-            'location': "12354 51st Test Ave N, TestCity WA 98413",
-            'created_by': self.user_id
-        }
+    assert response_json_data['status_code'] == 200
+    assert response_json_data['status'] == "Success"
+    assert len(response_json_data['user_events']) > 0
 
-        json_data = json.dumps(data)
+@pytest.mark.django_db
+def test_retrieve_events_by_user_id_fail(client, user, jwt_setup, event_id):
+    """
+    Test to get events of a user with certain user id but fail because user_id does not exist
+    """
+    test_create_event(client, user, jwt_setup, event_id)
+    url = reverse('Retrieve Others Events', kwargs = {'user_id': 7821368})
+    response = client.get(url)
 
-        non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
-        self.jwt = non_exist_user_jwt_response['jwt_token']
-        self.client.cookies['jwt_token'] = self.jwt
-        
-        response = self.client.post(reverse('Create Event'), data = json_data, content_type = 'application/json')
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
-        # print(response_json_data)
+    assert response_json_data['status_code'] == 404
+    assert response_json_data['status'] == "Failed"
+    assert not hasattr(response_json_data, 'user_events')
 
-        self.assertEqual(response_json_data['status_code'], 401)
-        self.assertEqual(response_json_data['description'], "User does not exists in the database")
-
-    def test_retrieve_events_by_user_id_success(self):
-        """
-        Test to get events of a user with certain user id successfully
-        """
-        self.test_create_event()
-        url = reverse('Retrieve Others Events', kwargs = {'user_id': self.user_id})
-        response = self.client.get(url)
-
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
-
-        self.assertEqual(response_json_data['status_code'], 200)
-        self.assertEqual(response_json_data['status'], "Success")
-        self.assertTrue(len(response_json_data['user_events']) > 0)
+# no need @pytest.mark.django_db
+# because it goes to error right away after knowing the user is not authenticated
+# no connecting to database
+def test_retrieve_events_by_user_id_user_not_exist(client, user, jwt_setup, event_id):
+    """
+    Test to get events of a user with certain user id, but fail because the logged in user does not exist
+    """
+    test_create_event(client, user, jwt_setup, event_id)
     
-    def test_retrieve_events_by_user_id_fail(self):
-        """
-        Test to get events of a user with certain user id but fail
-        """
-        self.test_create_event()
-        url = reverse('Retrieve Others Events', kwargs = {'user_id': 7821368})
-        response = self.client.get(url)
+    non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
+    non_exist_user_jwt_token = non_exist_user_jwt_response['jwt_token']
+    client.cookies['jwt_token'] = non_exist_user_jwt_token
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+    url = reverse('Retrieve Others Events', kwargs = {'user_id': user.id})
+    response = client.get(url)
 
-        self.assertEqual(response_json_data['status_code'], 404)
-        self.assertEqual(response_json_data['status'], "Failed")
-        self.assertTrue(not hasattr(response_json_data, 'user_events'))
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-    def test_retrieve_events_by_user_id_user_not_exist(self):
-        """
-        Test to get events of a user with certain user id, but fail because the logged in user does not exist
-        """
-        self.test_create_event()
-        
-        non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
-        self.jwt = non_exist_user_jwt_response['jwt_token']
-        self.client.cookies['jwt_token'] = self.jwt
+    assert response_json_data['status_code'] == 401
+    assert response_json_data['description'] == "User does not exists in the database"
 
-        url = reverse('Retrieve Others Events', kwargs = {'user_id': self.user_id})
-        response = self.client.get(url)
+@pytest.mark.django_db
+def test_retrieve_events(client, user, jwt_setup, event_id):
+    """
+    Test to get events of the current logged in user
+    """
+    test_create_event(client, user, jwt_setup, event_id)
+    url = reverse('Retrieve Own Events')
+    response = client.get(url)
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-        self.assertEqual(response_json_data['status_code'], 401)
-        self.assertEqual(response_json_data['description'], "User does not exists in the database")
+    assert response_json_data['status_code'] == 200
+    assert response_json_data['status'] == "Success"
+    assert len(response_json_data['user_events']) > 0
 
-    def test_retrieve_events(self):
-        """
-        Test to get events of the current logged in user
-        """
-        self.test_create_event()
-        url = reverse('Retrieve Own Events')
-        response = self.client.get(url)
+@pytest.mark.django_db
+def test_retrieve_events_user_not_exist(client, user, jwt_setup, event_id):
+    """
+    Test to get events of the current logged in user, but the logged in user does not exist
+    """
+    test_create_event(client, user, jwt_setup, event_id)
+    
+    non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
+    non_exist_user_jwt_token = non_exist_user_jwt_response['jwt_token']
+    client.cookies['jwt_token'] = non_exist_user_jwt_token
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+    url = reverse('Retrieve Own Events')
+    response = client.get(url)
 
-        self.assertEqual(response_json_data['status_code'], 200)
-        self.assertEqual(response_json_data['status'], "Success")
-        self.assertTrue(len(response_json_data['user_events']) > 0)
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-    def test_retrieve_events_user_not_exist(self):
-        """
-        Test to get events of the current logged in user, but the logged in user does not exist
-        """
-        self.test_create_event()
-        
-        non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
-        self.jwt = non_exist_user_jwt_response['jwt_token']
-        self.client.cookies['jwt_token'] = self.jwt
+    assert response_json_data['status_code'] == 401
+    assert response_json_data['description'] == "User does not exists in the database"
 
-        url = reverse('Retrieve Own Events')
-        response = self.client.get(url)
+@pytest.mark.django_db
+def test_update_event_success(client, user, jwt_setup, event_id):
+    """
+    Test to update an event of the current logged in user successfully
+    """
+    test_create_event(client, user, jwt_setup, event_id)
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+    new_data = {
+        "title": "Test123 Event New Title From Update",
+        "description": "Test123 Event description for testing. This is the neew updated description",
+        'date': '2024-02-02',
+        'location': "51423 99st Test Ave W, TestCity WA 98413",
+    }
 
-        self.assertEqual(response_json_data['status_code'], 401)
-        self.assertEqual(response_json_data['description'], "User does not exists in the database")
+    json_data = json.dumps(new_data)
+    url = reverse('Update Event', kwargs = {'event_id': event_id[0] })
+    response = client.put(url, data = json_data, content_type = 'application/json')
 
-    def test_update_event_success(self):
-        """
-        Test to update an event of the current logged in user successfully
-        """
-        self.test_create_event()
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-        new_data = {
-            "title": "Test123 Event New Title From Update",
-            "description": "Test123 Event description for testing. This is the neew updated description",
-            'date': '2024-02-02',
-            'location': "51423 99st Test Ave W, TestCity WA 98413",
-        }
+    assert response_json_data['status_code'] == 200
+    assert response_json_data['status'] == "Success"
+    assert response_json_data['updated_count'] == 1
+    assert Event.objects.filter(title="Test123 Event New Title From Update").exists()
 
-        json_data = json.dumps(new_data)
+@pytest.mark.django_db
+def test_update_event_user_not_exist(client, user, jwt_setup, event_id):
+    """
+    Test to update an event of the current logged in user, but fail because the logged in user does not exists
+    """
+    test_create_event(client, user, jwt_setup, event_id)
 
-        url = reverse('Update Event', kwargs = {'event_id': self.event_id })
-        response = self.client.put(url, data = json_data, content_type = 'application/json')
+    new_data = {
+        "title": "Test123 Event New Title From Update",
+        "description": "Test123 Event description for testing. This is the neew updated description",
+        'date': '2024-02-02',
+        'location': "51423 99st Test Ave W, TestCity WA 98413",
+    }
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+    json_data = json.dumps(new_data)
 
-        self.assertEqual(response_json_data['status_code'], 200)
-        self.assertEqual(response_json_data['status'], "Success")
-        self.assertEqual(response_json_data['updated_count'], 1)
-        self.assertTrue(Event.objects.filter(title="Test123 Event New Title From Update").exists())
+    non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
+    non_exist_user_jwt_token = non_exist_user_jwt_response['jwt_token']
+    client.cookies['jwt_token'] = non_exist_user_jwt_token
 
-    def test_update_event_user_not_exist(self):
-        """
-        Test to update an event of the current logged in user, but fail because the logged in user does not exists
-        """
-        self.test_create_event()
+    url = reverse('Update Event', kwargs = {'event_id': event_id[0] })
+    response = client.put(url, data = json_data, content_type = 'application/json')
 
-        new_data = {
-            "title": "Test123 Event New Title From Update",
-            "description": "Test123 Event description for testing. This is the neew updated description",
-            'date': '2024-02-02',
-            'location': "51423 99st Test Ave W, TestCity WA 98413",
-        }
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-        json_data = json.dumps(new_data)
+    assert response_json_data['status_code'] == 401
+    assert response_json_data['description'] == "User does not exists in the database"
 
-        non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
-        self.jwt = non_exist_user_jwt_response['jwt_token']
-        self.client.cookies['jwt_token'] = self.jwt
+@pytest.mark.django_db
+def test_update_event_fail(client, user, jwt_setup, event_id):
+    """
+    Test to update an event of the current logged in user but fail because the id wanted to be updated does not exist
+    """
+    test_create_event(client, user, jwt_setup, event_id)
 
-        url = reverse('Update Event', kwargs = {'event_id': self.event_id })
-        response = self.client.put(url, data = json_data, content_type = 'application/json')
+    new_data = {
+        "title": "Test123 Event New Title From Update",
+        "description": "Test123 Event description for testing. This is the neew updated description",
+        'date': '2024-02-02',
+        'location': "51423 99st Test Ave W, TestCity WA 98413",
+    }
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+    json_data = json.dumps(new_data)
 
-        self.assertEqual(response_json_data['status_code'], 401)
-        self.assertEqual(response_json_data['description'], "User does not exists in the database")
+    url = reverse('Update Event', kwargs = {'event_id': 300 })
+    response = client.put(url, data = json_data, content_type = 'application/json')
 
-    def test_update_event_fail(self):
-        """
-        Test to update an event of the current logged in user but fail because the id wanted to be updated does not exist
-        """
-        self.test_create_event()
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-        new_data = {
-            "title": "Test123 Event New Title From Update",
-            "description": "Test123 Event description for testing. This is the neew updated description",
-            'date': '2024-02-02',
-            'location': "51423 99st Test Ave W, TestCity WA 98413",
-        }
+    assert response_json_data['status_code'] == 404
+    assert response_json_data['status'] == "Failed"
+    assert response_json_data['updated_count'] == 0
+    assert not Event.objects.filter(title="Test123 Event New Title From Update").exists()
 
-        json_data = json.dumps(new_data)
+@pytest.mark.django_db
+def test_delete_event_success(client, user, jwt_setup, event_id):
+    """
+    Test to delete an event of the current logged in user successfully
+    """
+    test_create_event(client, user, jwt_setup, event_id)
 
-        url = reverse('Update Event', kwargs = {'event_id': 300 })
-        response = self.client.put(url, data = json_data, content_type = 'application/json')
+    url = reverse('Delete Event', kwargs = {'event_id': event_id[0] })
+    response = client.delete(url)
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-        self.assertEqual(response_json_data['status_code'], 404)
-        self.assertEqual(response_json_data['status'], "Failed")
-        self.assertEqual(response_json_data['updated_count'], 0)
-        self.assertTrue(not Event.objects.filter(title="Test123 Event New Title From Update").exists())
+    assert response_json_data['status_code'] == 200
+    assert response_json_data['status'] == "Success"
+    assert response_json_data['deleted_count'] == 1
+    assert not Event.objects.filter(title="Test123 Event Title").exists()
 
-    def test_delete_event_success(self):
-        """
-        Test to delete an event of the current logged in user successfully
-        """
-        self.test_create_event()
+@pytest.mark.django_db
+def test_delete_event_user_not_exist(client, user, jwt_setup, event_id):
+    """
+    Test to delete an event of the current logged in user, but fail because the logged in user does not exist
+    """
+    test_create_event(client, user, jwt_setup, event_id)
 
-        url = reverse('Delete Event', kwargs = {'event_id': self.event_id })
-        response = self.client.delete(url)
+    non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
+    non_exist_user_jwt_token = non_exist_user_jwt_response['jwt_token']
+    client.cookies['jwt_token'] = non_exist_user_jwt_token
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+    url = reverse('Delete Event', kwargs = {'event_id': event_id[0] })
+    response = client.delete(url)
 
-        self.assertEqual(response_json_data['status_code'], 200)
-        self.assertEqual(response_json_data['status'], "Success")
-        self.assertEqual(response_json_data['deleted_count'], 1)
-        self.assertTrue(not Event.objects.filter(title="Test123 Event Title").exists())
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-    def test_delete_event_user_not_exist(self):
-        """
-        Test to delete an event of the current logged in user, but fail because the logged in user does not exist
-        """
-        self.test_create_event()
+    assert response_json_data['status_code'] == 401
+    assert response_json_data['description'] == "User does not exists in the database"
 
-        non_exist_user_jwt_response = jwt_handler("nonexist@gmail.com", "Non", "Exist", 809)
-        self.jwt = non_exist_user_jwt_response['jwt_token']
-        self.client.cookies['jwt_token'] = self.jwt
+@pytest.mark.django_db
+def test_delete_event_fail(client, user, jwt_setup, event_id):
+    """
+    Test to delete an event of the current logged in user, but fail because the event wanted to be deleted does not exist 
+    """
+    test_create_event(client, user, jwt_setup, event_id)
 
-        url = reverse('Delete Event', kwargs = {'event_id': self.event_id })
-        response = self.client.delete(url)
+    url = reverse('Delete Event', kwargs = {'event_id': 712398 })
+    response = client.delete(url)
 
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
+    response_decoded_string = response.content.decode('utf-8')
+    response_json_data = json.loads(response_decoded_string)
 
-        self.assertEqual(response_json_data['status_code'], 401)
-        self.assertEqual(response_json_data['description'], "User does not exists in the database")
+    assert response_json_data['status_code'] == 404
+    assert response_json_data['status'] == "Failed"
+    assert response_json_data['deleted_count'] == 0
+    assert Event.objects.filter(title="Test123 Event Title").exists()
 
-    def test_delete_event_fail(self):
-        """
-        Test to delete an event of the current logged in user, but fail because the event wanted to be deleted does not exist 
-        """
-        self.test_create_event()
-
-        url = reverse('Delete Event', kwargs = {'event_id': 712398 })
-        response = self.client.delete(url)
-
-        response_decoded_string = response.content.decode('utf-8')
-        response_json_data = json.loads(response_decoded_string)
-
-        self.assertEqual(response_json_data['status_code'], 404)
-        self.assertEqual(response_json_data['status'], "Failed")
-        self.assertEqual(response_json_data['deleted_count'], 0)
-        self.assertTrue(Event.objects.filter(title="Test123 Event Title").exists())
-
-    def tearDown(self):
-        pass
