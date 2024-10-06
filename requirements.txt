@@ -10,11 +10,16 @@ django-allauth==65.0.1
 django-extensions==3.2.3
 djangorestframework==3.15.2
 idna==3.7
+iniconfig==2.0.0
 mock==5.1.0
 oauthlib==3.2.2
+packaging==24.1
+pluggy==1.5.0
 psycopg2-binary==2.9.9
 pycparser==2.22
 PyJWT==2.9.0
+pytest==8.3.3
+pytest-django==4.9.0
 python-dotenv==1.0.1
 python3-openid==3.2.0
 requests==2.32.3
