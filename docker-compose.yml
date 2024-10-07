@@ -1,0 +1,31 @@
+version: '3.9'
+
+services:
+  postgres_db:
+    image: postgres:latest
+    container_name: EventManagementDB
+    environment: 
+      POSTGRES_NAME: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - '5432:5432'
+    volumes: 
+      - postgres_db:/var/lib/postgresql/data
+
+  django:
+    image: django-docker:0.0.1
+    build: .
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres_db
+    depends_on:
+      - postgres_db
+    ports: 
+      - "8000:8000"
+
+volumes:
+  postgres_db:
+    driver: local

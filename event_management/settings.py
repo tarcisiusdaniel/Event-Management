@@ -99,7 +99,8 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME'),
         'USER': os.getenv('DB_USER'),
         'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': 'localhost',
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': 5432,
     }
 }
 
@@ -172,6 +173,8 @@ SOCIALACCOUNT_PROVIDERS = {
 
 LOGIN_REDIRECT_URL = '/user/login'
 LOGOUT_REDIRECT_URL = '/user/logout'
+
+# ALLOWED_HOSTS = ['*']
 
 # Other optional Allauth settings
 # ACCOUNT_EMAIL_REQUIRED = True
