@@ -4,7 +4,9 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /event_management_backend
 
-COPY . .env requirements.txt entrypoint.sh /event_management_backend/
+# COPY . .env requirements.txt entrypoint.sh /event_management_backend/
+
+COPY . requirements.txt entrypoint.sh /event_management_backend/
 
 EXPOSE 8000
 

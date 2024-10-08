@@ -4,10 +4,22 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from .models import User
 import jwt, datetime, json
+import boto3
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+def get_parameter(parameter_name):
+    """
+    Retrieve a parameter from the Parameter Store.
+    """
+    try:
+        ssm_client = boto3.client('ssm')
+        response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
+        return response['Parameter']['Value']
+    except ClientError as e:
+        return os.getenv(parameter_name)  # Fallback to environment variable if AWS credentials are not configured
 
 @login_required
 def login_handler(request):
@@ -91,7 +103,7 @@ def jwt_handler(email, first_name, last_name, id):
         'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=60),
         'iat': datetime.datetime.now(datetime.UTC),
     }
-    token = jwt.encode(payload, os.getenv('JWT_SECRET'), algorithm='HS256')
+    token = jwt.encode(payload, get_parameter('JWT_SECRET'), algorithm='HS256')
     return {
         'status': 'Success',
         'jwt_token': token,
@@ -111,7 +123,7 @@ def user_auth_jwt(request):
     
     user_info = {}
     try:
-        payload = jwt.decode(token, os.getenv('JWT_SECRET'), algorithms=['HS256'])
+        payload = jwt.decode(token, get_parameter('JWT_SECRET'), algorithms=['HS256'])
         tuple = User.objects.get(email = payload['email'], first_name = payload['first_name'], last_name = payload['last_name'])
         user_info['id'] = payload['id']
         user_info['email'] = payload['email']

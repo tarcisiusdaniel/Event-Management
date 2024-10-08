@@ -11,6 +11,7 @@ from django.contrib.sites.models import Site
 from allauth.socialaccount.models import SocialApp
 from django.contrib.auth.models import User
 from .models import User as U
+from .views import get_parameter
 
 from dotenv import load_dotenv
 
@@ -42,8 +43,8 @@ def google_app(site):
     google_app = SocialApp.objects.create(
         provider = 'google',
         name = 'Google SSO',
-        client_id = os.getenv('GOOGLE_OAUTH_CLIENT_ID'),
-        secret = os.getenv('GOOGLE_OAUTH_CLIENT_SECRET')
+        client_id = get_parameter('GOOGLE_OAUTH_CLIENT_ID'),
+        secret = get_parameter('GOOGLE_OAUTH_CLIENT_SECRET')
     )
     google_app.sites.add(1)
     return google_app

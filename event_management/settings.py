@@ -15,7 +15,31 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
+import boto3
+
 load_dotenv()
+
+from botocore.exceptions import ClientError
+# from botocore.errorfactory import ParameterNotFound
+
+def get_parameter(parameter_name):
+    """
+    Retrieve a parameter from the Parameter Store.
+    """
+    try:
+        ssm_client = boto3.client('ssm')
+        response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
+        return response['Parameter']['Value']
+    except ClientError as e:
+        return os.getenv(parameter_name)  # Fallback to environment variable if AWS credentials are not configured
+
+GOOGLE_OAUTH_CLIENT_ID = get_parameter('GOOGLE_OAUTH_CLIENT_ID')
+GOOGLE_OAUTH_CLIENT_SECRET = get_parameter('GOOGLE_OAUTH_CLIENT_SECRET')
+DB_NAME = get_parameter('DB_NAME')
+DB_USER = get_parameter('DB_USER')
+DB_PASSWORD = get_parameter('DB_PASSWORD')
+DB_HOST = get_parameter('DB_HOST')
+JWT_SECRET = get_parameter('JWT_SECRET')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +55,7 @@ SECRET_KEY = 'django-insecure-9$3aol90rpnqww4_54c8q0%enfvkv13#=pgbc!o97kwht5mgst
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '35.153.182.217']
+
 
 
 # Application definition
@@ -96,10 +121,11 @@ WSGI_APPLICATION = 'event_management.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASSWORD,
+        # 'HOST': os.getenv('DB_HOST'),
+        'HOST': 'localhost', # this is for development in local machine
         'PORT': 5432,
     }
 }
@@ -164,8 +190,8 @@ SOCIALACCOUNT_PROVIDERS = {
             'access_type': 'online',
         },
         'APP': {
-            'client_id': os.getenv('GOOGLE_OAUTH_CLIENT_ID'),
-            'secret': os.getenv('GOOGLE_OAUTH_CLIENT_SECRET'),
+            'client_id': GOOGLE_OAUTH_CLIENT_ID,
+            'secret': GOOGLE_OAUTH_CLIENT_SECRET,
         },
         'OAUTH_PKCE_ENABLED': True,
     }
