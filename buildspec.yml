@@ -8,6 +8,10 @@ phases:
       - yum update -y
       - yum install -y docker
       # - amazon-linux-extras install docker
+
+      # Install missing dependencies (libcrypt)
+      - echo Installing libxcrypt-compat
+      - yum install -y libxcrypt-compat
       
       # Start Docker daemon in the background
       - echo Starting Docker daemon...
