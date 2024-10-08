@@ -11,7 +11,7 @@ COPY . requirements.txt entrypoint.sh /event_management_backend/
 EXPOSE 8000
 
 # run when deployed to aws ec2
-RUN yum install -y aws-cli
+RUN sudo yum install -y aws-cli
 
 RUN chmod +x entrypoint.sh
 
