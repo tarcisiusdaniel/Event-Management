@@ -1,4 +1,6 @@
 asgiref==3.8.1
+boto3==1.35.36
+botocore==1.35.36
 certifi==2024.7.4
 cffi==1.17.1
 charset-normalizer==3.3.2
@@ -11,6 +13,7 @@ django-extensions==3.2.3
 djangorestframework==3.15.2
 idna==3.7
 iniconfig==2.0.0
+jmespath==1.0.1
 mock==5.1.0
 oauthlib==3.2.2
 packaging==24.1
@@ -20,11 +23,14 @@ pycparser==2.22
 PyJWT==2.9.0
 pytest==8.3.3
 pytest-django==4.9.0
+python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 python3-openid==3.2.0
 requests==2.32.3
 requests-mock==1.12.1
 requests-oauthlib==2.0.0
+s3transfer==0.10.3
+six==1.16.0
 social-auth-app-django==5.4.2
 social-auth-core==4.5.4
 sqlparse==0.5.1
