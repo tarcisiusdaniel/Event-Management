@@ -29,8 +29,7 @@ phases:
       # Run Docker Compose to build and start services
       - echo Building and starting services using docker-compose...
       - docker-compose up --build -d
-  
-  # post_build
+
 
 artifacts:
   files:
