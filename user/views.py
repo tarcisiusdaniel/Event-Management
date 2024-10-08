@@ -15,7 +15,7 @@ def get_parameter(parameter_name):
     Retrieve a parameter from the Parameter Store.
     """
     try:
-        ssm_client = boto3.client('ssm')
+        ssm_client = boto3.client('ssm', region_name='us-east-1')
         response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
         return response['Parameter']['Value']
     except ClientError as e:

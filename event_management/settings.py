@@ -17,6 +17,8 @@ from dotenv import load_dotenv
 
 import boto3
 
+session = boto3.Session(region_name='us-east-1')
+
 load_dotenv()
 
 from botocore.exceptions import ClientError
@@ -27,8 +29,9 @@ def get_parameter(parameter_name):
     Retrieve a parameter from the Parameter Store.
     """
     try:
-        ssm_client = boto3.client('ssm')
+        ssm_client = boto3.client('ssm', region_name='us-east-1')
         response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
+        print("Successful AWS PS")
         return response['Parameter']['Value']
     except ClientError as e:
         return os.getenv(parameter_name)  # Fallback to environment variable if AWS credentials are not configured
