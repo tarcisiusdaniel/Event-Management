@@ -5,7 +5,7 @@ services:
     image: postgres:latest
     container_name: EventManagementDB
     environment: 
-      POSTGRES_NAME: ${DB_NAME}
+      POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
@@ -14,13 +14,13 @@ services:
       - postgres_db:/var/lib/postgresql/data
 
   django:
-    image: django-docker:0.0.1
+    image: django-docker:em-app
     build: .
     environment:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: postgres_db
+      DB_HOST: ${DB_HOST}
     depends_on:
       - postgres_db
     ports: 
