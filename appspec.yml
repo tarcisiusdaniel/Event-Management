@@ -1,0 +1,24 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ec2-user/event_management
+
+permission:
+  - object: /home/ec2-user/event_management
+    owner: root
+    group: root
+
+hooks:
+  BeforeInstall:
+    - location: deployment_scripts/before_install.sh
+      timeout: 300
+      runas: root
+  AfterInstall:
+    - location: deployment_scripts/after_install.sh
+      timeout: 300
+      runas: root
+  ApplicationStart:
+    - location: deployment_scripts/start_application.sh
+      timeout: 300
+      runas: root
