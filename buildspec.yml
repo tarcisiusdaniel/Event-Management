@@ -8,10 +8,11 @@ phases:
       - yum update -y
       - yum install -y docker
       # - amazon-linux-extras install docker
-      - systemctl start docker
-      - systemctl enable docker
-      - usermod -a -G docker ec2-user
-      - chmod 666 /var/run/docker.sock
+      
+      # Start Docker daemon in the background
+      - echo Starting Docker daemon...
+      - nohup /usr/bin/dockerd > /var/log/dockerd.log 2>&1 &
+      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
 
       # Install Docker Compose
       - echo Installing Docker Compose...
