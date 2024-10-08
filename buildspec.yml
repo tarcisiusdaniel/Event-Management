@@ -12,6 +12,10 @@ phases:
       # Install missing dependencies (libcrypt)
       - echo Installing libxcrypt-compat
       - yum install -y libxcrypt-compat
+
+      # Install AWS CLI
+      - echo Installing AWS CLI...
+      - yum install -y aws-cli
       
       # Start Docker daemon in the background
       - echo Starting Docker daemon...
