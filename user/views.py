@@ -103,7 +103,7 @@ def jwt_handler(email, first_name, last_name, id):
         'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(minutes=60),
         'iat': datetime.datetime.now(datetime.UTC),
     }
-    token = jwt.encode(payload, get_parameter('JWT_SECRET'), algorithm='HS256')
+    token = jwt.encode(payload, get_parameter('/event_management_backend/JWT_SECRET'), algorithm='HS256')
     return {
         'status': 'Success',
         'jwt_token': token,
@@ -123,7 +123,7 @@ def user_auth_jwt(request):
     
     user_info = {}
     try:
-        payload = jwt.decode(token, get_parameter('JWT_SECRET'), algorithms=['HS256'])
+        payload = jwt.decode(token, get_parameter('/event_management_backend/JWT_SECRET'), algorithms=['HS256'])
         tuple = User.objects.get(email = payload['email'], first_name = payload['first_name'], last_name = payload['last_name'])
         user_info['id'] = payload['id']
         user_info['email'] = payload['email']

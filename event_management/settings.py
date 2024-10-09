@@ -36,13 +36,13 @@ def get_parameter(parameter_name):
     except ClientError as e:
         return os.getenv(parameter_name)  # Fallback to environment variable if AWS credentials are not configured
 
-GOOGLE_OAUTH_CLIENT_ID = get_parameter('GOOGLE_OAUTH_CLIENT_ID')
-GOOGLE_OAUTH_CLIENT_SECRET = get_parameter('GOOGLE_OAUTH_CLIENT_SECRET')
-DB_NAME = get_parameter('DB_NAME')
-DB_USER = get_parameter('DB_USER')
-DB_PASSWORD = get_parameter('DB_PASSWORD')
-DB_HOST = get_parameter('DB_HOST')
-JWT_SECRET = get_parameter('JWT_SECRET')
+GOOGLE_OAUTH_CLIENT_ID = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_ID')
+GOOGLE_OAUTH_CLIENT_SECRET = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_SECRET')
+DB_NAME = get_parameter('/event_management_backend/DB_NAME')
+DB_USER = get_parameter('/event_management_backend/DB_USER')
+DB_PASSWORD = get_parameter('/event_management_backend/DB_PASSWORD')
+DB_HOST = get_parameter('/event_management_backend/DB_HOST')
+JWT_SECRET = get_parameter('/event_management_backend/JWT_SECRET')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

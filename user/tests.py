@@ -43,8 +43,8 @@ def google_app(site):
     google_app = SocialApp.objects.create(
         provider = 'google',
         name = 'Google SSO',
-        client_id = get_parameter('GOOGLE_OAUTH_CLIENT_ID'),
-        secret = get_parameter('GOOGLE_OAUTH_CLIENT_SECRET')
+        client_id = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_ID'),
+        secret = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_SECRET')
     )
     google_app.sites.add(1)
     return google_app
