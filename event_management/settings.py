@@ -31,8 +31,8 @@ def get_parameter(parameter_name):
     try:
         ssm_client = boto3.client('ssm', region_name='us-east-1')
         response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
-        print("Successful AWS PS")
-        print(response)
+        # print("Successful AWS PS")
+        # print(response)
         return response['Parameter']['Value']
     except ClientError as e:
         return os.getenv(parameter_name)  # Fallback to environment variable if AWS credentials are not configured
