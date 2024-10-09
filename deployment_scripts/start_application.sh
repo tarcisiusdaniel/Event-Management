@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# # Start Docker service
-# sudo service docker start
+# Start Docker service
+sudo service docker start
 
 # Set the AWS region
 export AWS_REGION="us-east-1"  # Adjust as necessary
