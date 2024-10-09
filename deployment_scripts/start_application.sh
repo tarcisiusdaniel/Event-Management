@@ -19,4 +19,4 @@ export DB_HOST=$(aws ssm get-parameter --name "/event_management_backend/DB_HOST
 export JWT_TOKEN=$(aws ssm get-parameter --name "/event_management_backend/JWT_SECRET" --query "Parameters[0].Value" --output text)
 
 # Start Docker containers
-docker-compose up --build -d
+docker-compose up --build

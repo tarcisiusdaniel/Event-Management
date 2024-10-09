@@ -42,7 +42,7 @@ phases:
     commands:
       # Run Docker Compose to build and start services
       - echo Building and starting services using docker-compose...
-      - docker-compose up --build -d
+      - docker-compose up --build
 
 
 artifacts:
