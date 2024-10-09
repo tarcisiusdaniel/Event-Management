@@ -13,7 +13,7 @@ def auth_user(request):
 
     if auth_response_status == 'Failed':
         return {
-            'status_code': 401,
+            'status_code': 500,
             'description': auth_response.get("description"),
             'user_info': {}
         }
@@ -37,7 +37,7 @@ def register_user_to_event(request, event_id):
     The API that handles registering user to an event
     """
     auth_response = auth_user(request)
-    if auth_response['status_code'] == 401:
+    if auth_response['status_code'] == 500:
         return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']

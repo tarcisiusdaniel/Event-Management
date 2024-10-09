@@ -143,6 +143,13 @@ def user_auth_jwt(request):
         })
         response.delete_cookie('jwt_token')
         return response
+    except jwt.DecodeError:
+        response = JsonResponse({
+            'status': "Failed",
+            'description': "Token Is Malformed"
+        })
+        response.delete_cookie('jwt_token')
+        return response
 
     return JsonResponse({
         'status': "Success",

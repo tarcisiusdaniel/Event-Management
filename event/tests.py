@@ -103,7 +103,7 @@ def test_create_event_user_not_exists(client, user, jwt_setup):
     response_json_data = json.loads(response_decoded_string)
     # print(response_json_data)
 
-    assert response_json_data['status_code'] == 401
+    assert response_json_data['status_code'] == 500
     assert response_json_data['description'] == "User does not exists in the database"
 
 @pytest.mark.django_db
@@ -157,7 +157,7 @@ def test_retrieve_events_by_user_id_user_not_exist(client, user, jwt_setup, even
     response_decoded_string = response.content.decode('utf-8')
     response_json_data = json.loads(response_decoded_string)
 
-    assert response_json_data['status_code'] == 401
+    assert response_json_data['status_code'] == 500
     assert response_json_data['description'] == "User does not exists in the database"
 
 @pytest.mark.django_db
@@ -193,7 +193,7 @@ def test_retrieve_events_user_not_exist(client, user, jwt_setup, event_id):
     response_decoded_string = response.content.decode('utf-8')
     response_json_data = json.loads(response_decoded_string)
 
-    assert response_json_data['status_code'] == 401
+    assert response_json_data['status_code'] == 500
     assert response_json_data['description'] == "User does not exists in the database"
 
 @pytest.mark.django_db
@@ -248,7 +248,7 @@ def test_update_event_user_not_exist(client, user, jwt_setup, event_id):
     response_decoded_string = response.content.decode('utf-8')
     response_json_data = json.loads(response_decoded_string)
 
-    assert response_json_data['status_code'] == 401
+    assert response_json_data['status_code'] == 500
     assert response_json_data['description'] == "User does not exists in the database"
 
 @pytest.mark.django_db
@@ -313,7 +313,7 @@ def test_delete_event_user_not_exist(client, user, jwt_setup, event_id):
     response_decoded_string = response.content.decode('utf-8')
     response_json_data = json.loads(response_decoded_string)
 
-    assert response_json_data['status_code'] == 401
+    assert response_json_data['status_code'] == 500
     assert response_json_data['description'] == "User does not exists in the database"
 
 @pytest.mark.django_db

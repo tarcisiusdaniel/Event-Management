@@ -86,7 +86,7 @@ def test_register_user_to_event_user_not_exist(client, user, jwt_setup, event):
     response_decoded_string = response.content.decode('utf-8')
     response_json_data = json.loads(response_decoded_string)
     
-    assert response_json_data['status_code'] == 401
+    assert response_json_data['status_code'] == 500
     assert response_json_data['description'] == "User does not exists in the database"
 
 @pytest.mark.django_db

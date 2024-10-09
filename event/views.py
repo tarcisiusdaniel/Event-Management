@@ -15,7 +15,7 @@ def auth_user(request):
     
     if auth_response_status == 'Failed':
         return {
-            'status_code': 401,
+            'status_code': 500,
             'description': auth_response.get("description"),
             'user_info': {}
         }
@@ -35,7 +35,7 @@ def create_event(request):
     API to Create an event for the user
     """
     auth_response = auth_user(request)
-    if auth_response['status_code'] == 401:
+    if auth_response['status_code'] == 500:
         return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
@@ -70,7 +70,7 @@ def retrieve_events_by_user_id(request, user_id):
     API to get events created by the user
     """
     auth_response = auth_user(request)
-    if auth_response['status_code'] == 401:
+    if auth_response['status_code'] == 500:
         return JsonResponse(auth_response)
     # # extract user info after authentication
     # user_info = auth_response['user_info']
@@ -115,7 +115,7 @@ def retrieve_events(request):
     API to get events created by the user
     """
     auth_response = auth_user(request)
-    if auth_response['status_code'] == 401:
+    if auth_response['status_code'] == 500:
         return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
@@ -155,7 +155,7 @@ def update_event(request, event_id):
     API to Update an event for the user
     """
     auth_response = auth_user(request)
-    if auth_response['status_code'] == 401:
+    if auth_response['status_code'] == 500:
         return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
@@ -198,7 +198,7 @@ def delete_event(request, event_id):
     API to Create an event for the user
     """
     auth_response = auth_user(request)
-    if auth_response['status_code'] == 401:
+    if auth_response['status_code'] == 500:
         return JsonResponse(auth_response)
     # extract user info after authentication
     user_info = auth_response['user_info']
