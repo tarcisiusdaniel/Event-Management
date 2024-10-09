@@ -3,6 +3,9 @@
 # Start Docker service
 sudo service docker start
 
+# Navigate to the directory with the docker-compose.yml
+cd /home/ec2-user/event_management
+
 # Set the AWS region
 export AWS_REGION="us-east-1"  # Adjust as necessary
 
@@ -15,11 +18,5 @@ export DB_PASSWORD=$(aws ssm get-parameter --name "/event_management_backend/DB_
 export DB_HOST=$(aws ssm get-parameter --name "/event_management_backend/DB_HOST" --query "Parameters[0].Value" --output text)
 export JWT_TOKEN=$(aws ssm get-parameter --name "/event_management_backend/JWT_SECRET" --query "Parameters[0].Value" --output text)
 
-# Ensure Docker is running
-sudo service docker start
-
-# Navigate to the directory with the docker-compose.yml
-cd /home/ec2-user/event_management
-
-Start Docker containers
+# Start Docker containers
 docker-compose up --build -d
