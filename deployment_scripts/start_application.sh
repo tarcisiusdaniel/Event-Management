@@ -3,8 +3,8 @@
 # # Start Docker service
 # sudo service docker start
 
-# # Navigate to the directory with the docker-compose.yml
-# cd /path/to/your/application
+# Navigate to the directory with the docker-compose.yml
+cd /home/ec2-user/event_management
 
-# Start Docker containers
-# docker-compose up --build
+Start Docker containers
+docker-compose up --build
