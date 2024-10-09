@@ -5,9 +5,9 @@ services:
     image: postgres:latest
     container_name: EventManagementDB
     environment: 
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: $DB_NAME
+      POSTGRES_USER: $DB_USER
+      POSTGRES_PASSWORD: $DB_PASSWORD
     ports:
       - '5432:5432'
     volumes: 
@@ -17,13 +17,13 @@ services:
     image: django-docker:em-app
     build: .
     environment:
-      # GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID}
-      # GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET}
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: ${DB_HOST}
-      # JWT_TOKEN: ${JWT_TOKEN}
+      GOOGLE_OAUTH_CLIENT_ID: $GOOGLE_OAUTH_CLIENT_ID
+      GOOGLE_OAUTH_CLIENT_SECRET: $GOOGLE_OAUTH_CLIENT_SECRET
+      DB_NAME: $DB_NAME
+      DB_USER: $DB_USER
+      DB_PASSWORD: $DB_PASSWORD
+      DB_HOST: $DB_HOST
+      JWT_TOKEN: $JWT_TOKEN
     depends_on:
       - postgres_db
     ports: 
