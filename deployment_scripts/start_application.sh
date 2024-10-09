@@ -7,4 +7,4 @@
 cd /home/ec2-user/event_management
 
 Start Docker containers
-docker-compose up --build
+docker-compose up --build -d
