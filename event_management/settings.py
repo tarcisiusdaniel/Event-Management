@@ -33,7 +33,7 @@ def get_parameter(parameter_name):
         response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
         print("Successful AWS PS")
         print(response)
-        return response['Parameters'][0]['Value']
+        return response['Parameter']['Value']
     except ClientError as e:
         return os.getenv(parameter_name)  # Fallback to environment variable if AWS credentials are not configured
 
