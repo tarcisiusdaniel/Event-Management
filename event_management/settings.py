@@ -32,7 +32,7 @@ def get_parameter(parameter_name):
         ssm_client = boto3.client('ssm', region_name='us-east-1')
         response = ssm_client.get_parameter(Name=parameter_name, WithDecryption=True)
         # print("Successful AWS PS")
-        # print(response)
+        print(response)
         return response['Parameter']['Value']
     except ClientError as e:
         return os.getenv(parameter_name)  # Fallback to environment variable if AWS credentials are not configured
@@ -129,7 +129,8 @@ DATABASES = {
         'USER': DB_USER,
         'PASSWORD': DB_PASSWORD,
         # 'HOST': os.getenv('DB_HOST'),
-        'HOST': 'localhost', # this is for development in local machine
+        # 'HOST': 'localhost', # this is for development in local machine
+        'HOST': DB_HOST,
         'PORT': 5432,
     }
 }
