@@ -47,6 +47,7 @@ DB_USER = get_parameter('/event_management_backend/DB_USER')
 DB_PASSWORD = get_parameter('/event_management_backend/DB_PASSWORD')
 DB_HOST = get_parameter('/event_management_backend/DB_HOST')
 JWT_SECRET = get_parameter('/event_management_backend/JWT_SECRET')
+
 # print(GOOGLE_OAUTH_CLIENT_ID)
 # print(GOOGLE_OAUTH_CLIENT_SECRET)
 # print(DB_NAME)
