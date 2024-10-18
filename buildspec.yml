@@ -40,12 +40,6 @@ phases:
       - export DB_HOST=$(aws ssm get-parameter --name "/event_management_backend/DB_HOST" --query "Parameter.Value" --output text --region us-east-1)
       - export JWT_TOKEN=$(aws ssm get-parameter --name "/event_management_backend/JWT_SECRET" --query "Parameter.Value" --output text --region us-east-1)
 
-  # build:
-  #   commands:
-  #     # Run Docker Compose to build and start services
-  #     - echo Building and starting services using docker-compose...
-  #     - docker-compose up --build -d
-
 
 artifacts:
   files:

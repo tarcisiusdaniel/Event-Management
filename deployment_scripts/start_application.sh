@@ -1,6 +1,8 @@
 #!/bin/sh
 
 # Start Docker service
+docker --version
+docker --compose
 sudo service docker start
 
 # Navigate to the directory with the docker-compose.yml
