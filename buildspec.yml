@@ -22,10 +22,13 @@ phases:
       - echo Installing AWS CLI...
       - yum install -y aws-cli
       
-      # Start Docker daemon in the background
-      - echo Starting Docker daemon...
-      - nohup /usr/bin/dockerd > /var/log/dockerd.log 2>&1 &
-      - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+      # # Start Docker daemon in the background
+      # - echo Starting Docker daemon...
+      # - nohup /usr/bin/dockerd > /var/log/dockerd.log 2>&1 &
+      # - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
+
+      # Start Docker daemon
+      - sudo service docker start || (sudo dockerd &)
 
       # Fetch parameters from AWS Parameter Store and export them as environment variables to the images created
       - echo Fetching parameters from AWS Parameter Store...
@@ -36,13 +39,7 @@ phases:
       - export DB_PASSWORD=$(aws ssm get-parameter --name "/event_management_backend/DB_PASSWORD" --query "Parameter.Value" --output text --region us-east-1)
       - export DB_HOST=$(aws ssm get-parameter --name "/event_management_backend/DB_HOST" --query "Parameter.Value" --output text --region us-east-1)
       - export JWT_TOKEN=$(aws ssm get-parameter --name "/event_management_backend/JWT_SECRET" --query "Parameter.Value" --output text --region us-east-1)
-  
-  post_build:
-    commands:
-      - sudo systemctl start docker
-      - sudo usermod -a -G docker ec2-user
-      - docker --version
-      - docker-compose --version
+
   # build:
   #   commands:
   #     # Run Docker Compose to build and start services
