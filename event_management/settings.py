@@ -21,8 +21,7 @@ session = boto3.Session(region_name='us-east-1')
 
 load_dotenv()
 
-from botocore.exceptions import ClientError
-# from botocore.errorfactory import ParameterNotFound
+from botocore.exceptions import ClientError, NoCredentialsError
 
 def get_parameter(parameter_name):
     """
@@ -36,6 +35,10 @@ def get_parameter(parameter_name):
         return response['Parameter']['Value']
     except ClientError as e:
         return os.getenv(parameter_name)  # Fallback to environment variable if AWS credentials are not configured
+    except NoCredentialsError:
+        return os.getenv(parameter_name)
+
+env_variable = get_env()
 
 GOOGLE_OAUTH_CLIENT_ID = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_ID')
 GOOGLE_OAUTH_CLIENT_SECRET = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_SECRET')
