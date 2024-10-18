@@ -38,7 +38,7 @@ def get_parameter(parameter_name):
     except NoCredentialsError:
         return os.getenv(parameter_name)
 
-env_variable = get_env()
+# env_variable = get_env()
 
 GOOGLE_OAUTH_CLIENT_ID = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_ID')
 GOOGLE_OAUTH_CLIENT_SECRET = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_SECRET')
@@ -68,7 +68,7 @@ SECRET_KEY = 'django-insecure-9$3aol90rpnqww4_54c8q0%enfvkv13#=pgbc!o97kwht5mgst
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '35.153.182.217', '*']
+ALLOWED_HOSTS = ['localhost', '*']
 
 
 
