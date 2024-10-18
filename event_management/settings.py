@@ -40,6 +40,7 @@ def get_parameter(parameter_name):
 
 # env_variable = get_env()
 
+# during deployment
 GOOGLE_OAUTH_CLIENT_ID = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_ID')
 GOOGLE_OAUTH_CLIENT_SECRET = get_parameter('/event_management_backend/GOOGLE_OAUTH_CLIENT_SECRET')
 DB_NAME = get_parameter('/event_management_backend/DB_NAME')
@@ -47,6 +48,15 @@ DB_USER = get_parameter('/event_management_backend/DB_USER')
 DB_PASSWORD = get_parameter('/event_management_backend/DB_PASSWORD')
 DB_HOST = get_parameter('/event_management_backend/DB_HOST')
 JWT_SECRET = get_parameter('/event_management_backend/JWT_SECRET')
+
+# # during development 
+# GOOGLE_OAUTH_CLIENT_ID = get_parameter('GOOGLE_OAUTH_CLIENT_ID')
+# GOOGLE_OAUTH_CLIENT_SECRET = get_parameter('GOOGLE_OAUTH_CLIENT_SECRET')
+# DB_NAME = get_parameter('DB_NAME')
+# DB_USER = get_parameter('DB_USER')
+# DB_PASSWORD = get_parameter('DB_PASSWORD')
+# DB_HOST = get_parameter('DB_HOST')
+# JWT_SECRET = get_parameter('JWT_SECRET')
 
 # print(GOOGLE_OAUTH_CLIENT_ID)
 # print(GOOGLE_OAUTH_CLIENT_SECRET)
@@ -140,8 +150,8 @@ DATABASES = {
         'USER': DB_USER,
         'PASSWORD': DB_PASSWORD,
         # 'HOST': os.getenv('DB_HOST'),
-        # 'HOST': 'localhost', # this is for development in local machine
-        'HOST': DB_HOST,
+        'HOST': 'localhost', # this is for development in local machine
+        # 'HOST': DB_HOST,
         'PORT': 5432,
     }
 }
