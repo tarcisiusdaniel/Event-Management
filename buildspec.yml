@@ -5,9 +5,15 @@ phases:
     commands:
       # Install Docker
       - echo Installing Docker...
-      - yum update -y
-      - yum install -y docker
-      # - amazon-linux-extras install docker
+      - sudo yum update -y
+      - sudo amazon-linux-extras install docker
+      - sudo yum install -y docker
+
+      # Install Docker Compose
+      - echo Installing Docker Compose...
+      - sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+      - sudo chmod +x /usr/local/bin/docker-compose
+      - ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 
       # Install missing dependencies (libcrypt)
       - echo Installing libxcrypt-compat
@@ -22,12 +28,6 @@ phases:
       - nohup /usr/bin/dockerd > /var/log/dockerd.log 2>&1 &
       - timeout 15 sh -c "until docker info; do echo .; sleep 1; done"
 
-      # Install Docker Compose
-      - echo Installing Docker Compose...
-      - curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      - chmod +x /usr/local/bin/docker-compose
-      - ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
-
       # Fetch parameters from AWS Parameter Store and export them as environment variables to the images created
       - echo Fetching parameters from AWS Parameter Store...
       - export GOOGLE_OAUTH_CLIENT_ID=$(aws ssm get-parameter --name "/event_management_backend/GOOGLE_OAUTH_CLIENT_ID" --query "Parameter.Value" --output text --region us-east-1)
@@ -38,6 +38,12 @@ phases:
       - export DB_HOST=$(aws ssm get-parameter --name "/event_management_backend/DB_HOST" --query "Parameter.Value" --output text --region us-east-1)
       - export JWT_TOKEN=$(aws ssm get-parameter --name "/event_management_backend/JWT_SECRET" --query "Parameter.Value" --output text --region us-east-1)
   
+  post_install:
+    commands:
+      - sudo systemctl start docker
+      - sudo usermod -a -G docker ec2-user
+      - docker --version
+      - docker-compose --version
   # build:
   #   commands:
   #     # Run Docker Compose to build and start services
